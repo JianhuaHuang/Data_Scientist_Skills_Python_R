@@ -1,22 +1,156 @@
-# rm(list =ls())
-.libPaths('/NAS/jhuang/R/x86_64-redhat-linux-gnu-library/3.2')
+# Q1. What is the probability that the tourist is at least 3 city blocks 
+# (as the crow flies) from Broadway and Broadway after 10 moves?
+library(partitions)
+rm(list = ls())
 moves = 10
 blocks = 3
-moves_dir <- diff(rbind(0, combn(moves, 3), moves))
-moves_dir <- data.frame(t(moves_dir))
+moves_dir <- data.frame(matrix(t(compositions(moves, 4)), ncol = 4))
 colnames(moves_dir) <- c('left', 'right', 'up', 'down')
-moves_dir$distance <- sqrt((moves_dir$left - moves_dir$right)^2 + (moves_dir$up - moves_dir$down)^2)
-prob <- sum(moves_dir$distance >= blocks) / nrow(moves_dir)
-sprintf('%.10f', prob)  # 0.6583333333
+moves_dir$Prob <- apply(moves_dir, 1, dmultinom, prob = rep(.25, 4))
+moves_dir$distance <- sqrt((moves_dir$left - moves_dir$right)^2 + 
+    (moves_dir$up - moves_dir$down)^2)
+prob <- sum(moves_dir$Prob[moves_dir$distance >= blocks])
+sprintf('%.10f', prob)  # 0.4539794922
+
+# Q2.What is the probability that the tourist is at least 10 city blocks 
+# (as the crow flies) from Broadway and Broadway after 60 moves?
+rm(list = ls())
+moves = 60
+blocks = 10
+moves_dir <- data.frame(matrix(t(compositions(moves, 4)), ncol = 4))
+colnames(moves_dir) <- c('left', 'right', 'up', 'down')
+moves_dir$Prob <- apply(moves_dir, 1, dmultinom, prob = rep(.25, 4))
+moves_dir$distance <- sqrt((moves_dir$left - moves_dir$right)^2 + 
+    (moves_dir$up - moves_dir$down)^2)
+prob <- sum(moves_dir$Prob[moves_dir$distance >= blocks])
+sprintf('%.10f', prob)  # 0.2065011181
+
+# Q3 & Q4
+# Q3. What is the probability that the tourist is ever at least 5 city blocks 
+# (as the crow flies) from Broadway and Broadway within 10 moves?
+# Q4. What is the probability that the tourist is ever at least 10 city blocks 
+# (as the crow flies) from Broadway and Broadway within 60 moves?
+library(parallel)
+rm(list = ls())
+gc()
+rw <- function(moves) {
+  x_dir = c(-1, 1, 0, 0)  # left: -1. right: 1
+  y_dir = c(0, 0, -1, 1)  # down: -1, up: 1
+  moves_dir = sample(1:4, moves, replace = T)
+  
+  x_moves = x_dir[moves_dir]
+  y_moves = y_dir[moves_dir]
+  
+  x_dist = cumsum(x_moves)
+  y_dist = cumsum(y_moves)
+  xy_dist = sqrt(x_dist^2 + y_dist^2)
+  
+  return(max(xy_dist))
+}
+
+moves = 10
+blocks = 5
+
+# parallel simulation 30 * 10^7 times
+system.time(probs <- mclapply(rep(moves, 30), function(x) {
+  dist <- replicate(10^7, rw(moves = x))
+  prob <- sum(dist >= blocks) / length(dist)
+}, mc.cores = 30))  # 600 second
+
+sprintf('%.10f', mean(unlist(probs))) # Q3 0.1335052667
 
 moves = 60
 blocks = 10
-moves_dir <- diff(rbind(0, combn(moves, 3), moves))
-moves_dir <- data.frame(t(moves_dir))
-colnames(moves_dir) <- c('left', 'right', 'up', 'down')
-moves_dir$distance <- sqrt((moves_dir$left - moves_dir$right)^2 + (moves_dir$up - moves_dir$down)^2)
-prob <- sum(moves_dir$distance >= blocks) / nrow(moves_dir)
-sprintf('%.10f', prob)  # 0.8896843951
+
+system.time(probs <- mclapply(rep(moves, 30), function(x) {
+  dist <- replicate(10^7, rw(moves = x))
+  prob <- sum(dist >= blocks) / length(dist)
+}, mc.cores = 30))  # 700 second
+
+sprintf('%.10f', mean(unlist(probs))) # Q4 0.3184300500
+
+# Q5 & Q6. 
+# What is the probability that the tourist is ever east of East 1st Avenue 
+# but ends up west of West 1st Avenue in 10 moves?
+# What is the probability that the tourist is ever east of East 1st Avenue 
+# but ends up west of West 1st Avenue in 30 moves?
+rm(list = ls())
+gc()
+rw <- function(moves) {
+  x_dir = c(-1, 1, 0, 0)  # left: -1. right: 1
+  y_dir = c(0, 0, -1, 1)  # down: -1, up: 1
+  moves_dir = sample(1:4, moves, replace = T)
+  
+  x_moves = x_dir[moves_dir]
+  y_moves = y_dir[moves_dir]
+  
+  x_dist = cumsum(x_moves)
+  
+  rs_boolean = (max(x_dist > 1)) & (x_dist[length(x_dist)] < -1)
+  return(rs_boolean)
+}
+
+moves = 10
+system.time(probs <- mclapply(rep(moves, 30), function(x) {
+  rs_boolean <- replicate(10^7, rw(moves = x))
+  prob <- mean(rs_boolean)
+}, mc.cores = 30))
+
+sprintf('%.10f', mean(unlist(probs))) # Q5 0.0059103367
+
+moves = 30
+system.time(probs <- mclapply(rep(moves, 30), function(x) {
+  rs_boolean <- replicate(10^7, rw(moves = x))
+  prob <- mean(rs_boolean)
+}, mc.cores = 30))
+
+sprintf('%.10f', mean(unlist(probs))) # Q6 0.0774871433
+
+# Q7 & Q8
+# What is the average number of moves until the first time the tourist is 
+# at least 10 city blocks (as the crow flies) from Broadway and Broadway.
+# What is the average number of moves until the first time the tourist is 
+# at least 60 city blocks (as the crow flies) from Broadway and Broadway.
+library(parallel)
+rm(list = ls())
+gc()
+rw <- function(moves, blocks) {
+  x_dir = c(-1, 1, 0, 0)  # left: -1. right: 1
+  y_dir = c(0, 0, -1, 1)  # down: -1, up: 1
+  moves_dir = sample(1:4, moves, replace = T)
+  
+  x_moves = x_dir[moves_dir]
+  y_moves = y_dir[moves_dir]
+  
+  x_dist = cumsum(x_moves)
+  y_dist = cumsum(y_moves)
+  xy_dist = sqrt(x_dist^2 + y_dist^2)
+  n_moves = which(xy_dist >= blocks)[1]  
+  return(n_moves)
+}
+
+# Q7
+moves = 10000
+blocks = 10
+
+system.time(n_moves <- mclapply(rep(moves, 30), function(x) {
+  n_move <- replicate(10^5, rw(moves = moves, blocks = blocks))
+  n_move_avg = mean(n_move, na.rm = T)
+}, mc.cores = 30))  # 330 second
+
+sprintf('%.10f', mean(unlist(n_moves))) # Q7 104.6449173333
+
+# Q8
+moves = 10000
+blocks = 60
+
+system.time(n_moves <- mclapply(rep(moves, 30), function(x) {
+  n_move <- replicate(10^5, rw(moves = moves, blocks = blocks))
+  n_move_avg = mean(n_move, na.rm = T)
+}, mc.cores = 30))  # 330 second
+
+sprintf('%.10f', mean(unlist(n_moves))) # Q8 3359.7048657601
+# it can be approciate with blocks^2 == 3600
 
 ## nyc 311 call
 library(data.table)
@@ -29,7 +163,8 @@ complain_agency <- count(df, Agency, sort = TRUE)
 ratio_2 <- complain_agency$n[2] / sum(complain_agency$n)
 sprintf('%.10f', ratio_2)  # 0.1719314121
 
-# Q2. What is the distance (in degrees) between the 90% and 10% percentiles of degrees latitude?
+# Q2. What is the distance (in degrees) between the 90% and 10% percentiles of
+# degrees latitude?
 lat_percentile <- quantile(df$Latitude, c(0.1, 0.9), na.rm = TRUE)
 lat_dif <- lat_percentile[2] - lat_percentile[1]
 sprintf('%.10f',lat_dif)  # 0.2357908310
@@ -104,6 +239,3 @@ sprintf('%.10f', second_sd)  # 64.3430326760
 # if the max interval is removed, the sd will change a lot 
 second_sd_rm_largest <- sd(interval[-length(interval)])
 sprintf('%.10f', second_sd_rm_largest)  # 56.6804780473
-
-# project description likn
-# https://youtu.be/masXhcwhY2c
