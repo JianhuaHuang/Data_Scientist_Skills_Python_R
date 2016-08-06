@@ -186,15 +186,15 @@ ggplot(states_map, aes(x = long, y = lat, fill = state_jobs, group = group)) +
   theme_bw() + 
   labs(title = 'Number of data scientist jobs in each state') + 
   theme(legend.position = c(.92, .3))
-ggsave('states_job.png')
+# ggsave('states_job.png')
 ```
 
 * Here is the code used to make the word cloud, taking NY state as an example
 ```{r, eval=TRUE, warning=FALSE,message=FALSE}
 words_NY <- df$words[df$State_abb == 'NY']
 wordcloud(words_NY, colors=brewer.pal(8, "Dark2"))
-invisible(dev.copy(png, 'wordcloud.png'))
-invisible(dev.off())
+# invisible(dev.copy(png, 'wordcloud.png'))
+# invisible(dev.off())
 ```
 
 * Here is the code used to make the required skills plot for NY. 
@@ -213,6 +213,6 @@ qplot(skills_factor) +
     labs(title = 'Required skills for data scientist in NY', x = 'Skills', 
     y = 'Frequency') + 
     theme(axis.text.x = element_text(angle = 90, hjust = 0))
-ggsave('skills.png')
+# ggsave('skills.png')
 ```
 

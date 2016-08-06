@@ -195,7 +195,7 @@ ggplot(states_map, aes(x = long, y = lat, fill = state_jobs, group = group)) +
 ![](README_files/figure-markdown_github/unnamed-chunk-6-1.png)
 
 ``` r
-ggsave('states_job.png')
+# ggsave('states_job.png')
 ```
 
 -   Here is the code used to make the word cloud, taking NY state as an example
@@ -208,8 +208,8 @@ wordcloud(words_NY, colors=brewer.pal(8, "Dark2"))
 ![](README_files/figure-markdown_github/unnamed-chunk-7-1.png)
 
 ``` r
-invisible(dev.copy(png, 'wordcloud.png'))
-invisible(dev.off())
+# invisible(dev.copy(png, 'wordcloud.png'))
+# invisible(dev.off())
 ```
 
 -   Here is the code used to make the required skills plot for NY.
@@ -234,5 +234,5 @@ qplot(skills_factor) +
 ![](README_files/figure-markdown_github/unnamed-chunk-8-1.png)
 
 ``` r
-ggsave('skills.png')
+# ggsave('skills.png')
 ```
