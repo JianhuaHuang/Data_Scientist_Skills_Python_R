@@ -1,27 +1,27 @@
 ---
-title: "Untitled"
+title: "Job Market and Skill Requirements for Data Scientists"
 author: "Jianhua Huang"
 date: "Saturday, October 31, 2015"
-output: html_document
+output:
+  md_document:
+    variant: markdown_github
+    toc: true
 ---
-# Job skills recommendation system over space
-This project is proposed for the Data Incubator Challenge. 
 
-## Probem
+# Job Market and Skill Requirements for Data Scientists
+
 Job hunters usually want to know what kind of skills they need for certain types of jobs and where the job market is big. Thus it is useful to create a system to display the spatial distribution of given jobs. What is more, the skills required for a given job may differ across locations. It will also be helpful to display the desired skills over space.
 
 ## Data source
-This proposed project mainly depends on the data scraped from indeed.com. For a given type of job, the job title, job location, and job link will be scraped from indeed.com. With the job links, we can scraped the job description in each job page and extract all of the visible text from it. The visible text will be processed to removed some punctuation and split into words. These words will be used to generate word clouds and extract the requried skills. 
+This proposed project mainly depends on the data scraped from indeed.com. For a given type of job, the job title, job location, and job link will be scraped from indeed.com. With the job links, we can scraped the job description in each job page and extract all of the visible text from it. The visible text will be processed to removed some punctuation and split into words. These words will be used to generate word clouds and extract the required skills. 
 
-## Preliminary example
-As an example, I will use "data scientist" as the given job type to generate the spatial distribution of jobs and the word cloud of required skills. I will use Python to scrape the web data from indeed.com and use R to generate the plots
+In this example, I used Python to scrape the web data from indeed.com and use R to generate the plots
 
 ### Web scraping with Python
 This part explain the process of web scraping with Python. 
 
-1.Here is the modules required for this project. 
+1.Here is the Python modules required for this analysis 
 ```{r,eval=FALSE}
-# -*- coding: utf-8 -*-
 import bs4 
 import urllib
 import re
@@ -34,7 +34,7 @@ import collections
 
 2. Using the `urllib` and `bs4 (BeautifulSoup)` modules, we can extract the total number of open positions for "data scientist", and calculate the number of pages we need to scrape from indeed.com.
 ```{r,eval=FALSE}
-cd 'C:\\Users\\temp\\Dropbox\\test\\DataIncubator'
+cd 'your\working\directory'
 url = 'http://www.indeed.com/jobs?q="data+scientist"&start='
 source = urllib.request.urlopen(url).read().decode()
 bs_tree = bs4.BeautifulSoup(source)
@@ -92,9 +92,10 @@ job_df = job_df.drop_duplicates()
 ```
 
 4. With the job links, we can go to each job page and extract all visible texts from it. For each position (job page), the visible texts can be processed with the following steps:
-* Remove useless information (e.g., stop words, and punctuations) to generate clean text. 
+* Remove useless information (e.g., stop words, and punctuation) to generate clean text. 
 * Split the cleaned texts into words
 * Match the words with commonly used skills (prepared beforehand) to generate the required skills for the given position
+
 After scraping all positions, the required skills and words are added to the original data frame as to new columns. Then, the data frame is saved as csv file for future usage. 
 ```{r,eval=FALSE}
 # extract contents from job_link
@@ -150,7 +151,7 @@ job_df.to_csv('indeed_DS_jobs_skills8.csv')  # save the output for future use
 ```
 
 ### Plots with R
-This part explains the processes of ploting the spatial job distribution, word cloud, and required skills in R. It requires some steps to extract some useful information and reformating, so that they can be used as input data for plots. These steps include:
+This part explains the processes of ploting the spatial job distribution, word cloud, and required skills in R. It requires a few steps to extract some useful information and reformatting, so that they can be used as input data for plots:
 1. extract the state abbreviation from the job location column
 2. convert the state abbreviation to full name
 3. match the number of jobs in each state to the state map by full state name
